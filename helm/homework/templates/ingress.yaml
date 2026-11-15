@@ -3,10 +3,11 @@ kind: Ingress
 
 metadata:
   name: myapp
+  namespace: {{ .Values.namespace }}
 
 spec:
   rules:
-    - host: myapp.local
+    - host: {{ .Values.ingress.host }}
       http:
         paths:  
           - path: /
@@ -14,6 +15,6 @@ spec:
             
             backend:
               service:
-                name: homeworks
+                name: myapp
                 port:
-                  number: 80
+                  number: {{ .Values.service.port }}

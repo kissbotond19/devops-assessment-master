@@ -1,10 +1,17 @@
+namespace: production
+
 replicaCount: 1
 
 image:
   repository: myapp
-  tag: latest
+  tag: 1.0.0
+
+containerPort: 8080
 
 service:
-  port: 8080
+  port: 80
 
 environment: dev
+
+ingress:
+  host: myapp.local
