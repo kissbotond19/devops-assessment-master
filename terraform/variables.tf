@@ -1,11 +1,14 @@
 variable "namespace" {
-    type = string
+  type    = string
+  default = "production"
 }
 
 variable "environment" {
-    type = string
+  type    = string
+  default = "prod"
 }
 
 variable "image_tag" {
-    type = string
+  type    = string
+  default = "1.0.0"
 }
