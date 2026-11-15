@@ -1,13 +1,41 @@
+# Use self-hosted Linux shell runner, tagged "local-k8s".
+# It needs Docker access, kubectl, helm and kind cluster/node.
 stages:
   - build
   - deploy
 
-build:
+default:
+  tags:
+    - local-k8s
+
+variables:
+  HELM_CHART: "helm/homework"
+  HELM_RELEASE: "homework"
+
+build_image:
   stage: build
   script:
-    - echo "Building the application..."
+    - docker build --tag "myapp:$CI_COMMIT_SHORT_SHA" .
 
 deploy:
   stage: deploy
+  only:
+    - main
   script:
-    - echo "Deploying the application..."
+    - |
+      export KUBECONFIG="$HOME/.kube/config"
+      K8S_NAMESPACE="$(awk '$1 == "namespace:" { print $2; exit }' "$HELM_CHART/values.yaml")"
+
+      kubectl config current-context
+      docker save "myapp:$CI_COMMIT_SHORT_SHA" |
+        docker exec -i desktop-control-plane ctr -n k8s.io images import -
+
+      helm lint "$HELM_CHART"
+      helm upgrade --install "$HELM_RELEASE" "$HELM_CHART" \
+        --namespace "$K8S_NAMESPACE" \
+        --create-namespace \
+        --set image.tag="$CI_COMMIT_SHORT_SHA" \
+
+      kubectl rollout status deployment/myapp \
+        --namespace "$K8S_NAMESPACE" \
+        --timeout=120s
